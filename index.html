@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Cyber Security Escape Room</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="overlay">
+  <p class="overlay-tag">CSC662 · UiTM · Cyber Security Awareness</p>
+  <h1>CYBER<br>ESCAPE ROOM</h1>
+  <p class="overlay-sub">// SYSTEM BREACH DETECTED — INITIATE RECOVERY PROTOCOL</p>
+  <button id="startBtn">▶ START GAME</button>
+  <p class="controls-hint"><span>WASD</span> Move &nbsp;·&nbsp; <span>MOUSE</span> Look &nbsp;·&nbsp; <span>E</span> Interact &nbsp;·&nbsp; <span>Q</span> NPC Tip &nbsp;·&nbsp; <span>SHIFT</span> Sprint</p>
+</div>
+
+<div id="crosshair">+</div>
+
+<div id="hud">
+  <h3>🔐 Cyber Escape Room</h3>
+  <p id="keyDisplay">🔑 Keys: 0/4</p>
+  <p id="knowledgeDisplay">🧠 Knowledge: 0</p>
+  <p id="weaponDisplay">🪪 Tool: None</p>
+  <p id="missionDisplay">🎯 Mission: Enter Room 1</p>
+</div>
+
+<div id="minimap"><div id="miniPlayer"></div></div>
+
+<div id="hands">
+  <div id="leftHand" class="hand"></div>
+  <div id="rightHand" class="hand"></div>
+  <div id="keycard">CYBER<br>KEYCARD</div>
+</div>
+
+<div id="interactionText"></div>
+<div id="notification"></div>
+
+<div id="bombMini">
+  💣 <span id="bombTimer">10</span>
+</div>
+
+<div id="quizPopup" class="popup-bg">
+  <div class="popup-content">
+    <h2 id="quizTitle">Quiz</h2>
+    <p id="quizQuestion"></p>
+    <div id="quizAnswers"></div>
+    <p id="quizResult"></p>
+  </div>
+</div>
+
+
+<div id="introScreen">
+  <h1>🚨 CYBER ATTACK DETECTED</h1>
+  <p>Hackers have locked the Cyber Security Office system.</p>
+  <p>Collect 4 keys and restore the Main Server.</p>
+</div>
+
+<div id="restorePopup" class="popup-bg">
+  <div class="popup-content victory">
+    <h2>🖥️ Restoring Main Server...</h2>
+    <div id="restoreBarOuter"><div id="restoreBarInner"></div></div>
+    <p id="restoreText">0%</p>
+  </div>
+</div>
+
+<div id="passwordPopup" class="popup-bg">
+  <div class="popup-content">
+    <h2>🔐 Room 1: Create Strong Password</h2>
+    <p>Create a strong password to get Key 1 and unlock the Cyber Keycard.</p>
+    <ul>
+      <li>At least 8 characters</li>
+      <li>Uppercase and lowercase letters</li>
+      <li>Number and symbol</li>
+    </ul>
+    <div class="password-row">
+      <input type="password" id="passwordInput" placeholder="Example: Cyber@2026">
+      <button id="togglePassword">👁 Show</button>
+    </div>
+    <button id="submitPassword">Submit</button>
+    <button onclick="closePopup('passwordPopup')">Close</button>
+    <p id="passwordResult"></p>
+  </div>
+</div>
+
+<div id="npcPopup" class="popup-bg">
+  <div class="popup-content">
+    <h2>👨‍💼 Cyber Mentor</h2>
+    <p id="npcText"></p>
+    <button onclick="closePopup('npcPopup')">Close</button>
+  </div>
+</div>
+
+<div id="victoryPopup" class="popup-bg">
+  <div class="popup-content victory">
+    <h2>🎉 ESCAPE SUCCESS!</h2>
+    <p>You collected all 4 keys and escaped the cyber attack.</p>
+    <p id="finalScore"></p>
+    <button onclick="location.reload()">Play Again</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
