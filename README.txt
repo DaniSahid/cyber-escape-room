@@ -1,13 +1,9 @@
-Cyber Escape Room V12 Office Remastered
+Players explore a 3D office environment and complete four cybersecurity challenges to restore a hacked server. Along the way, they encounter real-world threats like phishing emails, suspicious USB drives, and unsafe WiFi networks.
 
-New:
-- More realistic office feel
-- Reception desk, sofa, pantry, coffee machine, water dispenser
-- Meeting room area with table/chairs/whiteboard
-- Open workspace with many PC stations
-- Server racks near final exit
-- More cyber posters and plants
-- Short cyber attack intro
-- Server restore progress ending
+Topics covered:
 
-Run with VS Code Live Server.
+Password strength & best practices
+Safe URL & HTTPS recognition
+Phishing email detection
+Two-Factor Authentication (2FA)
+USB drop attacks & public WiFi risks
