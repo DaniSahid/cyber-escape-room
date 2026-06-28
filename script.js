@@ -1,5 +1,11 @@
 let scene,camera,renderer;
 let playing=false,area="map",mf=false,mb=false,ml=false,mr=false,sprint=false;
+function isMobile(){
+  if(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent))return true;
+  if(navigator.maxTouchPoints>0)return true;
+  if(window.matchMedia&&window.matchMedia("(pointer:coarse)").matches)return true;
+  return false;
+}
 let yaw=0,pitch=0,bob=0,keys=0,knowledge=0,savedPassword="",weapon=false;
 let obstacles=[],npcs=[],signs={},pc={},exitDoor={},roomWallExit={};
 let currentRoom=null,currentQuestion=0,bombActive=false,bombTime=0,bombInterval=null;
@@ -384,7 +390,17 @@ function restoreServerWin(){
   },120);
 }
 
-function start(){playing=true;overlay.style.display="none";crosshair.style.display=hud.style.display=minimap.style.display=hands.style.display="block";document.body.requestPointerLock();playIntro()}
+function start(){
+  playing=true;
+  overlay.style.display="none";
+  crosshair.style.display=hud.style.display=minimap.style.display=hands.style.display="block";
+  if(isMobile()){
+    document.getElementById("mobileControls").style.display="flex";
+  } else {
+    document.body.requestPointerLock();
+  }
+  playIntro();
+}
 function keydown(e){let k=e.key.toLowerCase();if(k==="w"||e.key==="ArrowUp")mf=true;if(k==="s"||e.key==="ArrowDown")mb=true;if(k==="a"||e.key==="ArrowLeft")ml=true;if(k==="d"||e.key==="ArrowRight")mr=true;if(k==="shift")sprint=true;if(k==="e"){pushHands();interact()}if(k==="q")talkNPC()}
 function keyup(e){let k=e.key.toLowerCase();if(k==="w"||e.key==="ArrowUp")mf=false;if(k==="s"||e.key==="ArrowDown")mb=false;if(k==="a"||e.key==="ArrowLeft")ml=false;if(k==="d"||e.key==="ArrowRight")mr=false;if(k==="shift")sprint=false}
 function look(e){if(!playing)return;yaw-=e.movementX*.002;pitch-=e.movementY*.002;pitch=Math.max(-Math.PI/2,Math.min(Math.PI/2,pitch));camera.rotation.order="YXZ";camera.rotation.y=yaw;camera.rotation.x=pitch}
@@ -520,13 +536,6 @@ function pushHands(){hands.classList.remove("pushing");void hands.offsetWidth;ha
 function resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)}
 
 // ── MOBILE CONTROLS ──────────────────────────────────────
-// Detect touch: userAgent OR actual touch support OR pointer coarse (iPad with mouse-like pointer reports coarse)
-function isMobile(){
-  if(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent))return true;
-  if(navigator.maxTouchPoints>0)return true;
-  if(window.matchMedia&&window.matchMedia("(pointer:coarse)").matches)return true;
-  return false;
-}
 window.mobileE=function(){if(playing){pushHands();interact();}}
 window.mobileTalkNPC=function(){if(playing)talkNPC();}
 
@@ -582,13 +591,4 @@ window.mobileTalkNPC=function(){if(playing)talkNPC();}
     e.preventDefault();
   },{passive:false});
   renderer.domElement.addEventListener("touchend",()=>{lookActive=false;});
-
-  // Start button — no pointer lock on mobile, show joystick after start
-  startBtn.onclick=function(){
-    playing=true;
-    overlay.style.display="none";
-    crosshair.style.display=hud.style.display=minimap.style.display=hands.style.display="block";
-    mc.style.display="flex"; // show joystick NOW
-    playIntro();
-  };
 })();
