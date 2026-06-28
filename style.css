@@ -594,40 +594,45 @@ body::after {
 #mobileControls {
   display: none;
   position: fixed; bottom: 0; left: 0; right: 0;
-  height: 200px;
+  height: 190px;
   z-index: 30;
   pointer-events: none;
-  padding: 16px 20px;
+  padding: 12px 20px 20px;
   align-items: flex-end;
   justify-content: space-between;
 }
-#joystickZone { pointer-events: all; }
-#joystickBase {
-  width: 120px; height: 120px;
-  background: rgba(0,255,159,0.08);
-  border: 2px solid rgba(0,255,159,0.3);
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 0 20px rgba(0,255,159,0.15);
-  touch-action: none;
+
+/* WASD D-pad */
+#wasdPad { pointer-events: all; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+#wasdRow1, #wasdRow2 { display: flex; gap: 6px; }
+
+.wasdBtn {
+  width: 62px; height: 62px;
+  background: rgba(0,10,12,0.88);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--neon);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--glow);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  transition: background 0.1s;
 }
-#joystickKnob {
-  width: 50px; height: 50px;
-  background: radial-gradient(circle, rgba(0,255,159,0.6), rgba(0,255,159,0.2));
-  border: 2px solid var(--neon);
-  border-radius: 50%;
-  transition: transform 0.05s;
-  box-shadow: 0 0 15px rgba(0,255,159,0.5);
-}
+.wasdBtn:active { background: rgba(0,255,159,0.2); }
+
 #mobileButtons {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   pointer-events: all;
 }
 #mobileButtons button {
-  width: 72px; height: 72px;
-  background: rgba(0,10,12,0.85);
+  width: 68px; height: 68px;
+  background: rgba(0,10,12,0.88);
   border: 1px solid var(--border);
   border-radius: 50%;
   color: var(--neon);
@@ -643,6 +648,7 @@ body::after {
   box-shadow: var(--glow);
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 #mobileButtons button span {
   font-family: 'Rajdhani', sans-serif;
@@ -651,12 +657,39 @@ body::after {
   color: rgba(0,255,159,0.5);
   text-transform: uppercase;
 }
-#mobileButtons button:active { background: rgba(0,255,159,0.15); }
+#mobileButtons button:active { background: rgba(0,255,159,0.2); }
 #mobileSprint { color: var(--neon2); border-color: rgba(0,207,255,0.35); box-shadow: var(--glow2); }
+
+/* ══════════════════════════════
+   EXIT GAME BUTTON
+══════════════════════════════ */
+#exitGameBtn {
+  position: fixed;
+  top: 16px; right: 176px;
+  z-index: 10;
+  padding: 8px 18px;
+  background: rgba(15,0,0,0.85);
+  color: var(--danger);
+  border: 1px solid rgba(255,45,85,0.45);
+  border-radius: 4px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: all 0.2s;
+}
+#exitGameBtn:hover {
+  background: rgba(255,45,85,0.18);
+  border-color: var(--danger);
+  box-shadow: 0 0 16px rgba(255,45,85,0.4);
+}
 
 @media (max-width: 600px) {
   #hud { width: 160px; font-size: 11px; padding: 10px 12px; }
   #minimap { width: 110px; height: 110px; }
   .popup-content { width: 95vw; padding: 24px 20px; }
   #overlay h1 { font-size: 34px; }
+  #exitGameBtn { top: auto; bottom: 210px; right: 16px; font-size: 10px; padding: 7px 14px; }
 }
