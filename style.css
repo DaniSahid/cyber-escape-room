@@ -436,13 +436,13 @@ body::after {
   box-shadow: var(--glow);
 }
 
-/* ── Close/secondary button ── */
-.popup-content button:last-of-type:not(#submitPassword):not(#togglePassword) {
+/* ── Close/secondary button (only direct children of popup-content, not inside cyberEventChoices) ── */
+.popup-content > button:last-of-type:not(#submitPassword):not(#togglePassword) {
   color: rgba(180,220,255,0.5);
   border-color: rgba(180,220,255,0.2);
   font-size: 11px;
 }
-.popup-content button:last-of-type:not(#submitPassword):not(#togglePassword):hover {
+.popup-content > button:last-of-type:not(#submitPassword):not(#togglePassword):hover {
   background: rgba(180,220,255,0.08);
   color: rgba(180,220,255,0.9);
   box-shadow: none;
