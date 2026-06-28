@@ -6,6 +6,11 @@ function isMobile(){
   if(window.matchMedia&&window.matchMedia("(pointer:coarse)").matches)return true;
   return false;
 }
+window.exitGame=function(){
+  if(confirm("Exit game? Your progress will be lost.")){
+    location.reload();
+  }
+};
 let yaw=0,pitch=0,bob=0,keys=0,knowledge=0,savedPassword="",weapon=false;
 let obstacles=[],npcs=[],signs={},pc={},exitDoor={},roomWallExit={};
 let currentRoom=null,currentQuestion=0,bombActive=false,bombTime=0,bombInterval=null;
@@ -457,11 +462,6 @@ function start(){
     document.body.requestPointerLock();
   }
   playIntro();
-}
-window.exitGame=function(){
-  if(confirm("Exit game? Your progress will be lost.")){
-    location.reload();
-  }
 }
 function keydown(e){let k=e.key.toLowerCase();if(k==="w"||e.key==="ArrowUp")mf=true;if(k==="s"||e.key==="ArrowDown")mb=true;if(k==="a"||e.key==="ArrowLeft")ml=true;if(k==="d"||e.key==="ArrowRight")mr=true;if(k==="shift")sprint=true;if(k==="e"){pushHands();interact()}if(k==="q")talkNPC()}
 function keyup(e){let k=e.key.toLowerCase();if(k==="w"||e.key==="ArrowUp")mf=false;if(k==="s"||e.key==="ArrowDown")mb=false;if(k==="a"||e.key==="ArrowLeft")ml=false;if(k==="d"||e.key==="ArrowRight")mr=false;if(k==="shift")sprint=false}
