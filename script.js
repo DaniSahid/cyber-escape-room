@@ -520,14 +520,21 @@ function pushHands(){hands.classList.remove("pushing");void hands.offsetWidth;ha
 function resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)}
 
 // ── MOBILE CONTROLS ──────────────────────────────────────
-function isMobile(){return /Android|iPhone|iPad|iPod|Touch/i.test(navigator.userAgent)||('ontouchstart' in window);}
+// Detect touch: userAgent OR actual touch support OR pointer coarse (iPad with mouse-like pointer reports coarse)
+function isMobile(){
+  if(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent))return true;
+  if(navigator.maxTouchPoints>0)return true;
+  if(window.matchMedia&&window.matchMedia("(pointer:coarse)").matches)return true;
+  return false;
+}
 window.mobileE=function(){if(playing){pushHands();interact();}}
 window.mobileTalkNPC=function(){if(playing)talkNPC();}
 
 (function setupMobile(){
   if(!isMobile())return;
   const mc=document.getElementById("mobileControls");
-  mc.style.display="flex";
+  // Don't show joystick yet — show it when game starts
+  mc.style.display="none";
 
   // Joystick
   const base=document.getElementById("joystickBase");
@@ -576,10 +583,12 @@ window.mobileTalkNPC=function(){if(playing)talkNPC();}
   },{passive:false});
   renderer.domElement.addEventListener("touchend",()=>{lookActive=false;});
 
-  // Start button — no pointer lock on mobile
+  // Start button — no pointer lock on mobile, show joystick after start
   startBtn.onclick=function(){
-    playing=true;overlay.style.display="none";
+    playing=true;
+    overlay.style.display="none";
     crosshair.style.display=hud.style.display=minimap.style.display=hands.style.display="block";
+    mc.style.display="flex"; // show joystick NOW
     playIntro();
   };
 })();
