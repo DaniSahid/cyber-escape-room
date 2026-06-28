@@ -18,6 +18,56 @@ const emailPos={x:0,z:28};
 const limits={minX:-42,maxX:42,minZ:-42,maxZ:42};
 const doors={r1:{x:-25,z:-25},r2:{x:25,z:-25},r3:{x:-25,z:20},r4:{x:25,z:20},exit:{x:0,z:-36}};
 const spawn={r1:[0,1.7,-53],r2:[36,1.7,-53],r3:[-36,1.7,-53],r4:[0,1.7,-88]};
+
+// ── SOUND ENGINE (Web Audio API — no files needed) ────────
+const SFX=(function(){
+  let ctx=null;
+  function getCtx(){if(!ctx)ctx=new(window.AudioContext||window.webkitAudioContext)();return ctx;}
+  function tone(freq,type,dur,vol,delay=0){
+    try{
+      let c=getCtx(),o=c.createOscillator(),g=c.createGain();
+      o.connect(g);g.connect(c.destination);
+      o.type=type;o.frequency.setValueAtTime(freq,c.currentTime+delay);
+      g.gain.setValueAtTime(vol,c.currentTime+delay);
+      g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+delay+dur);
+      o.start(c.currentTime+delay);o.stop(c.currentTime+delay+dur+0.05);
+    }catch(e){}
+  }
+  function noise(dur,vol,delay=0){
+    try{
+      let c=getCtx(),buf=c.createBuffer(1,c.sampleRate*dur,c.sampleRate),d=buf.getChannelData(0);
+      for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+      let src=c.createBufferSource(),g=c.createGain(),f=c.createBiquadFilter();
+      f.type="bandpass";f.frequency.value=800;
+      src.buffer=buf;src.connect(f);f.connect(g);g.connect(c.destination);
+      g.gain.setValueAtTime(vol,c.currentTime+delay);
+      g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+delay+dur);
+      src.start(c.currentTime+delay);src.stop(c.currentTime+delay+dur+0.05);
+    }catch(e){}
+  }
+  return{
+    footstep:()=>{noise(0.06,0.08);},
+    interact:()=>{tone(880,"sine",0.08,0.15);tone(1320,"sine",0.1,0.12,0.07);},
+    correct:()=>{tone(523,"sine",0.12,0.2);tone(659,"sine",0.12,0.2,0.1);tone(784,"sine",0.2,0.2,0.2);},
+    wrong:()=>{tone(200,"sawtooth",0.1,0.2);tone(150,"sawtooth",0.25,0.18,0.1);},
+    doorOpen:()=>{tone(440,"sine",0.05,0.15);tone(660,"sine",0.1,0.12,0.05);tone(880,"sine",0.15,0.1,0.1);},
+    keyGet:()=>{[0,.1,.2,.3].forEach((d,i)=>tone(523+i*130,"sine",0.12,0.18,d));},
+    alarm:()=>{[0,.15,.3,.45,.6,.75].forEach((d,i)=>tone(i%2?880:660,"sawtooth",0.12,0.25,d));},
+    victory:()=>{[523,659,784,1047].forEach((f,i)=>tone(f,"sine",0.3,0.2,i*0.15));},
+    ambient:()=>{
+      // Low hum background — plays looped
+      try{
+        let c=getCtx(),o1=c.createOscillator(),o2=c.createOscillator(),g=c.createGain();
+        o1.type="sine";o1.frequency.value=55;
+        o2.type="sine";o2.frequency.value=58;
+        o1.connect(g);o2.connect(g);g.connect(c.destination);
+        g.gain.value=0.04;
+        o1.start();o2.start();
+      }catch(e){}
+    }
+  };
+})();
+let lastFootstep=0;
 const pcpos={r1:{x:0,z:-61},r2:{x:36,z:-61},r3:{x:-36,z:-61},r4:{x:0,z:-96}};
 const exitpos={r1:{x:0,z:-42},r2:{x:36,z:-42},r3:{x:-36,z:-42},r4:{x:0,z:-77}};
 const roomCenter={r1:[0,-55],r2:[36,-55],r3:[-36,-55],r4:[0,-90]};
@@ -70,6 +120,8 @@ function bind(){
  document.addEventListener("keyup",keyup);
  document.addEventListener("mousemove",look);
  window.addEventListener("resize",resize);
+ const exitBtn=document.getElementById("exitGameBtn");
+ if(exitBtn)exitBtn.onclick=window.exitGame;
 }
 function lights(){
  scene.add(new THREE.AmbientLight(0xffffff,1.75));
@@ -344,6 +396,7 @@ window.answerCyberEvent=function(type,correct){
   let res=document.getElementById("cyberEventResult");
   document.getElementById("cyberEventChoices").style.display="none";
   if(correct){
+    SFX.correct();
     knowledge+=10;updateHUD();
     const msgs={
       usb:"✅ Correct! Never plug in unknown USB drives. They can install malware silently. +10 Knowledge!",
@@ -357,6 +410,7 @@ window.answerCyberEvent=function(type,correct){
       wifi:"❌ Wrong! Open WiFi networks can be honeypots set up by hackers to steal your data.",
       email:"❌ Wrong! This is a phishing email. The domain 'mayb4nk-secure.xyz' is fake — never click suspicious links!"
     };
+    SFX.wrong();
     res.innerHTML="<span style='color:#ff2d55'>"+msgs[type]+"</span>";
   }
   cyberEvents[type]=true;
@@ -385,6 +439,7 @@ function restoreServerWin(){
     if(progress>=100){
       clearInterval(timer);
       restorePopup.style.display="none";
+      SFX.victory();
       victoryPopup.style.display="flex";
     }
   },120);
@@ -394,12 +449,19 @@ function start(){
   playing=true;
   overlay.style.display="none";
   crosshair.style.display=hud.style.display=minimap.style.display=hands.style.display="block";
+  document.getElementById("exitGameBtn").style.display="block";
+  SFX.ambient();
   if(isMobile()){
     document.getElementById("mobileControls").style.display="flex";
   } else {
     document.body.requestPointerLock();
   }
   playIntro();
+}
+window.exitGame=function(){
+  if(confirm("Exit game? Your progress will be lost.")){
+    location.reload();
+  }
 }
 function keydown(e){let k=e.key.toLowerCase();if(k==="w"||e.key==="ArrowUp")mf=true;if(k==="s"||e.key==="ArrowDown")mb=true;if(k==="a"||e.key==="ArrowLeft")ml=true;if(k==="d"||e.key==="ArrowRight")mr=true;if(k==="shift")sprint=true;if(k==="e"){pushHands();interact()}if(k==="q")talkNPC()}
 function keyup(e){let k=e.key.toLowerCase();if(k==="w"||e.key==="ArrowUp")mf=false;if(k==="s"||e.key==="ArrowDown")mb=false;if(k==="a"||e.key==="ArrowLeft")ml=false;if(k==="d"||e.key==="ArrowRight")mr=false;if(k==="shift")sprint=false}
@@ -427,6 +489,7 @@ function handleMainDoor(k){
 }
 function openDoor(k){
  if(portalOn[k])return note("Walk into the white portal.");
+ SFX.doorOpen();
  note("Door opening... walk into portal.");
  let d=mainDoor[k];let it=setInterval(()=>{d.rotation.y-=.04;if(d.rotation.y<=-Math.PI/2){d.rotation.y=-Math.PI/2;clearInterval(it);setPortal(k,true)}},16);
 }
@@ -446,11 +509,13 @@ function showQuiz(){
 function answerQuiz(i){
  let q=questions[currentRoom][currentQuestion];
  if(i===q.c){
+  SFX.correct();
   stopBomb();quizResult.innerHTML="✅ Correct!";quizResult.style.color="#16a34a";
   currentQuestion++;
   if(currentQuestion>=questions[currentRoom].length)setTimeout(()=>completeRoom(currentRoom),500);
   else setTimeout(showQuiz,500);
  }else{
+  SFX.wrong();
   quizResult.innerHTML="❌ Wrong! Bomb timer started. Try another answer fast.";quizResult.style.color="#dc2626";startBomb();
  }
 }
@@ -459,13 +524,14 @@ function completeRoom(k){
  if(k==="r2")keys=Math.max(keys,2);
  if(k==="r3")keys=Math.max(keys,3);
  if(k==="r4")keys=Math.max(keys,4);
+ SFX.keyGet();
  pc[k].material.color.set(0x22c55e);updateHUD();
  closePopup("quizPopup");note(roomNames[k]+" COMPLETE! Find the RED EXIT door.");missionDisplay.innerText="🎯 Mission: Exit "+roomNames[k];
 }
 function checkPassword(){
  let p=passwordInput.value;let strong=p.length>=8&&/[A-Z]/.test(p)&&/[a-z]/.test(p)&&/[0-9]/.test(p)&&/[^A-Za-z0-9]/.test(p);
- if(strong){savedPassword=p;done.r1=true;keys=Math.max(keys,1);weapon=true;hands.classList.add("hasWeapon");pc.r1.material.color.set(0x22c55e);passwordResult.innerHTML="✅ Key 1 collected. Cyber Keycard unlocked!";passwordResult.style.color="#16a34a";updateHUD();setTimeout(()=>{closePopup("passwordPopup");note("Room 1 complete! Find the RED EXIT door.");missionDisplay.innerText="🎯 Mission: Exit Room 1"},700)}
- else{passwordResult.innerHTML="❌ Weak password.";passwordResult.style.color="#dc2626"}
+ if(strong){SFX.keyGet();savedPassword=p;done.r1=true;keys=Math.max(keys,1);weapon=true;hands.classList.add("hasWeapon");pc.r1.material.color.set(0x22c55e);passwordResult.innerHTML="✅ Key 1 collected. Cyber Keycard unlocked!";passwordResult.style.color="#16a34a";updateHUD();setTimeout(()=>{closePopup("passwordPopup");note("Room 1 complete! Find the RED EXIT door.");missionDisplay.innerText="🎯 Mission: Exit Room 1"},700)}
+ else{SFX.wrong();passwordResult.innerHTML="❌ Weak password.";passwordResult.style.color="#dc2626"}
 }
 function exitRoom(k){
  area="map";camera.position.set(doors[k].x,1.7,doors[k].z+5);yaw=0;camera.rotation.y=0;
@@ -497,7 +563,7 @@ function startBomb(){
 }
 function stopBomb(){bombActive=false;if(bombInterval)clearInterval(bombInterval);bombMini.style.display="none"}
 function openPopup(id){document.exitPointerLock();playing=false;document.getElementById(id).style.display="flex"}
-function closePopup(id){document.getElementById(id).style.display="none";document.body.requestPointerLock();playing=true}
+function closePopup(id){document.getElementById(id).style.display="none";if(!isMobile())document.body.requestPointerLock();playing=true}
 window.closePopup=closePopup;
 function togglePasswordView(inputId,btnId){let input=document.getElementById(inputId),btn=document.getElementById(btnId);if(input.type==="password"){input.type="text";btn.innerText="🙈 Hide"}else{input.type="password";btn.innerText="👁 Show"}}
 function note(t){notification.innerText=t;notification.style.display="block";setTimeout(()=>notification.style.display="none",2500)}
@@ -511,7 +577,7 @@ function move(){
  if(area==="map"){camera.position.x=Math.max(limits.minX,Math.min(limits.maxX,camera.position.x));camera.position.z=Math.max(limits.minZ,Math.min(limits.maxZ,camera.position.z))}
  else{let c=roomCenter[area];camera.position.x=Math.max(c[0]-10,Math.min(c[0]+10,camera.position.x));camera.position.z=Math.max(c[1]-11,Math.min(c[1]+13,camera.position.z))}
  if(hit(camera.position.x,camera.position.z)){camera.position.x=ox;camera.position.z=oz}
- if(mf||mb||ml||mr){bob+=.14;camera.position.y=1.7+Math.sin(bob)*.035}else camera.position.y=1.7;
+ if(mf||mb||ml||mr){bob+=.14;camera.position.y=1.7+Math.sin(bob)*.035;let now=Date.now();if(now-lastFootstep>320){SFX.footstep();lastFootstep=now;}}else camera.position.y=1.7;
 }
 function hit(x,z){for(let o of obstacles){if(o.area!==area)continue;if(x>o.x-o.w/2-.35&&x<o.x+o.w/2+.35&&z>o.z-o.d/2-.35&&z<o.z+o.d/2+.35)return true}return false}
 function ui(){
@@ -542,33 +608,20 @@ window.mobileTalkNPC=function(){if(playing)talkNPC();}
 (function setupMobile(){
   if(!isMobile())return;
   const mc=document.getElementById("mobileControls");
-  // Don't show joystick yet — show it when game starts
   mc.style.display="none";
 
-  // Joystick
-  const base=document.getElementById("joystickBase");
-  const knob=document.getElementById("joystickKnob");
-  let jActive=false,jStartX=0,jStartY=0;
-  base.addEventListener("touchstart",e=>{
-    jActive=true;
-    jStartX=e.touches[0].clientX;
-    jStartY=e.touches[0].clientY;
-    e.preventDefault();
-  },{passive:false});
-  base.addEventListener("touchmove",e=>{
-    if(!jActive)return;
-    let dx=e.touches[0].clientX-jStartX;
-    let dy=e.touches[0].clientY-jStartY;
-    let dist=Math.min(Math.hypot(dx,dy),40);
-    let angle=Math.atan2(dy,dx);
-    knob.style.transform=`translate(${Math.cos(angle)*dist}px,${Math.sin(angle)*dist}px)`;
-    mf=dy<-12;mb=dy>12;ml=dx<-12;mr=dx>12;
-    e.preventDefault();
-  },{passive:false});
-  base.addEventListener("touchend",()=>{
-    jActive=false;mf=mb=ml=mr=false;
-    knob.style.transform="translate(0,0)";
-  });
+  // WASD buttons — hold to move, release to stop
+  function bindBtn(id,setOn,setOff){
+    const btn=document.getElementById(id);
+    if(!btn)return;
+    btn.addEventListener("touchstart",e=>{setOn();e.preventDefault();},{passive:false});
+    btn.addEventListener("touchend",e=>{setOff();e.preventDefault();},{passive:false});
+    btn.addEventListener("touchcancel",e=>{setOff();e.preventDefault();},{passive:false});
+  }
+  bindBtn("btnW", ()=>{mf=true;},  ()=>{mf=false;});
+  bindBtn("btnS", ()=>{mb=true;},  ()=>{mb=false;});
+  bindBtn("btnA", ()=>{ml=true;},  ()=>{ml=false;});
+  bindBtn("btnD", ()=>{mr=true;},  ()=>{mr=false;});
 
   // Look by swiping right half of screen
   let lookActive=false,lx=0,ly=0;
@@ -591,4 +644,8 @@ window.mobileTalkNPC=function(){if(playing)talkNPC();}
     e.preventDefault();
   },{passive:false});
   renderer.domElement.addEventListener("touchend",()=>{lookActive=false;});
+
+  // Exit button
+  const exitBtn=document.getElementById("exitGameBtn");
+  if(exitBtn)exitBtn.onclick=window.exitGame;
 })();
