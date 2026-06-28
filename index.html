@@ -111,17 +111,24 @@
 
 <!-- Mobile Controls -->
 <div id="mobileControls">
-  <div id="joystickZone">
-    <div id="joystickBase">
-      <div id="joystickKnob"></div>
+  <div id="wasdPad">
+    <div id="wasdRow1">
+      <button id="btnW" class="wasdBtn" ontouchstart="mf=true;return false" ontouchend="mf=false">W</button>
+    </div>
+    <div id="wasdRow2">
+      <button id="btnA" class="wasdBtn" ontouchstart="ml=true;return false" ontouchend="ml=false">A</button>
+      <button id="btnS" class="wasdBtn" ontouchstart="mb=true;return false" ontouchend="mb=false">S</button>
+      <button id="btnD" class="wasdBtn" ontouchstart="mr=true;return false" ontouchend="mr=false">D</button>
     </div>
   </div>
   <div id="mobileButtons">
-    <button id="mobileInteract" ontouchstart="mobileE()">E<span>Interact</span></button>
-    <button id="mobileTip" ontouchstart="mobileTalkNPC()">Q<span>Tip</span></button>
-    <button id="mobileSprint" ontouchstart="sprint=true" ontouchend="sprint=false">⇧<span>Sprint</span></button>
+    <button id="mobileInteract" ontouchstart="mobileE();return false">E<span>Interact</span></button>
+    <button id="mobileTip" ontouchstart="mobileTalkNPC();return false">Q<span>Tip</span></button>
+    <button id="mobileSprint" ontouchstart="sprint=true;return false" ontouchend="sprint=false">⇧<span>Sprint</span></button>
   </div>
 </div>
+
+<button id="exitGameBtn" style="display:none">✕ Exit Game</button>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script src="script.js"></script>
