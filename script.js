@@ -60,14 +60,65 @@ const SFX=(function(){
     alarm:()=>{[0,.15,.3,.45,.6,.75].forEach((d,i)=>tone(i%2?880:660,"sawtooth",0.12,0.25,d));},
     victory:()=>{[523,659,784,1047].forEach((f,i)=>tone(f,"sine",0.3,0.2,i*0.15));},
     ambient:()=>{
-      // Low hum background — plays looped
+      // Cyberpunk looping background music — generative, no files needed
       try{
-        let c=getCtx(),o1=c.createOscillator(),o2=c.createOscillator(),g=c.createGain();
-        o1.type="sine";o1.frequency.value=55;
-        o2.type="sine";o2.frequency.value=58;
-        o1.connect(g);o2.connect(g);g.connect(c.destination);
-        g.gain.value=0.04;
-        o1.start();o2.start();
+        let c=getCtx();
+        // Bass drone
+        let bass=c.createOscillator(),bassGain=c.createGain();
+        bass.type="sawtooth";bass.frequency.value=55;
+        let bassFilter=c.createBiquadFilter();bassFilter.type="lowpass";bassFilter.frequency.value=180;
+        bass.connect(bassFilter);bassFilter.connect(bassGain);bassGain.connect(c.destination);
+        bassGain.gain.value=0.06;bass.start();
+
+        // Pad chord (stacked fifths)
+        [[110,0.022],[165,0.016],[220,0.012],[330,0.008]].forEach(([f,v])=>{
+          let o=c.createOscillator(),g=c.createGain(),flt=c.createBiquadFilter();
+          o.type="sine";o.frequency.value=f;
+          flt.type="lowpass";flt.frequency.value=600;
+          o.connect(flt);flt.connect(g);g.connect(c.destination);
+          g.gain.value=v;o.start();
+        });
+
+        // Rhythmic pulse every 0.5s
+        let pulseInterval=setInterval(()=>{
+          if(!playing)return;
+          let o=c.createOscillator(),g=c.createGain();
+          o.type="square";o.frequency.value=110;
+          o.connect(g);g.connect(c.destination);
+          g.gain.setValueAtTime(0.04,c.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.18);
+          o.start(c.currentTime);o.stop(c.currentTime+0.2);
+        },500);
+
+        // Hi-hat tick every 0.25s
+        let hihatInterval=setInterval(()=>{
+          if(!playing)return;
+          try{
+            let buf=c.createBuffer(1,c.sampleRate*0.05,c.sampleRate),d=buf.getChannelData(0);
+            for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+            let src=c.createBufferSource(),g=c.createGain(),flt=c.createBiquadFilter();
+            flt.type="highpass";flt.frequency.value=8000;
+            src.buffer=buf;src.connect(flt);flt.connect(g);g.connect(c.destination);
+            g.gain.setValueAtTime(0.025,c.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.05);
+            src.start();src.stop(c.currentTime+0.06);
+          }catch(e){}
+        },250);
+
+        // Slow melody arp every 1.6s
+        const melody=[220,247,262,294,330,294,262,247];let mi=0;
+        let melodyInterval=setInterval(()=>{
+          if(!playing)return;
+          let o=c.createOscillator(),g=c.createGain(),rev=c.createConvolver();
+          o.type="sine";o.frequency.value=melody[mi%melody.length];mi++;
+          o.connect(g);g.connect(c.destination);
+          g.gain.setValueAtTime(0.07,c.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+1.4);
+          o.start(c.currentTime);o.stop(c.currentTime+1.5);
+        },1600);
+
+        // Store intervals so we could stop later if needed
+        window._bgIntervals=[pulseInterval,hihatInterval,melodyInterval];
       }catch(e){}
     }
   };
